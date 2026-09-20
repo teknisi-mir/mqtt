@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DLA MQTT Tester & Monitor</title>
+<title>DLA MQTT Monitor</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Cpath fill='%238CC9E8' d='M60 10 C 27 10, 5 31, 5 56 C 5 81, 27 96, 54 96 C 56 101, 59 107, 66 110 C 62 104, 63 99, 63 99 C 85 95, 107 81, 107 56 C 107 31, 86 10, 60 10 Z'/%3E%3Ccircle cx='39' cy='55' r='6' fill='white'/%3E%3Ccircle cx='60' cy='55' r='6' fill='white'/%3E%3Ccircle cx='81' cy='55' r='6' fill='white'/%3E%3C/svg%3E">
 <script src="https://unpkg.com/mqtt@5.10.1/dist/mqtt.min.js"></script>
 <style>
@@ -249,6 +249,28 @@ const lastPass = localStorage.getItem('dla_broker_pass');
 if(lastPass) brokerPassInput.value = lastPass;
 const lastUser = localStorage.getItem('dla_broker_user');
 if(lastUser) brokerUserInput.value = lastUser;
+
+window.addEventListener('resize', () => {
+  if (publishPopup.style.display === 'flex' && publishPopup.style.left) {
+    const popupRect = publishPopup.getBoundingClientRect();
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+
+    const maxLeft = windowWidth - popupRect.width - 10; 
+    const maxTop = windowHeight - popupRect.height - 10;
+
+    let currentLeft = parseInt(publishPopup.style.left) || 0;
+    let currentTop = parseInt(publishPopup.style.top) || 0;
+
+    if (currentLeft > maxLeft) {
+      publishPopup.style.left = `${Math.max(10, maxLeft)}px`;
+    }
+
+    if (currentTop > maxTop) {
+      publishPopup.style.top = `${Math.max(10, maxTop)}px`;
+    }
+  }
+});
 
 chkNoAuth.addEventListener('change', (e) => {
   const noAuth = e.target.checked;
@@ -536,6 +558,6 @@ document.addEventListener('mouseup', () => {
 // Initial notice update
 updateNotice();
 </script>
-<footer>© 2026 GPRZ | v2.0</footer>
+<footer>© 2026 GPRZ | v2.1</footer>
 </body>
 </html>
