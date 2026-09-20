@@ -313,7 +313,7 @@ function getBrokerUrl(){
   if(raw.includes(':')){
     ip = raw.split(':')[0];
   }
-  return `${proto}:
+  return `${proto}://${ip}:${port}${path}`;
 }
 
 function setStatus(state, text){ 
