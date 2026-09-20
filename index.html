@@ -481,7 +481,6 @@ btnClear.addEventListener('click', ()=>{
   renderTopics();
 });
 
-// Pop-up Toggle
 btnFabPublish.addEventListener('click', () => {
   publishPopup.style.display = publishPopup.style.display === 'flex' ? 'none' : 'flex';
   pubLog.textContent = '';
@@ -491,7 +490,6 @@ btnClosePopup.addEventListener('click', () => {
   publishPopup.style.display = 'none';
 });
 
-// Publish Message Execution
 btnPublishExec.addEventListener('click', () => {
   const topic = pubTopicInput.value.trim();
   const payload = pubPayloadInput.value;
@@ -520,7 +518,6 @@ btnPublishExec.addEventListener('click', () => {
   });
 });
 
-// Make Popup Draggable
 let isDragging = false;
 let offsetX = 0;
 let offsetY = 0;
@@ -538,7 +535,6 @@ document.addEventListener('mousemove', (e) => {
   let left = e.clientX - offsetX;
   let top = e.clientY - offsetY;
 
-  // Boundary check
   const maxLeft = window.innerWidth - publishPopup.offsetWidth;
   const maxTop = window.innerHeight - publishPopup.offsetHeight;
 
@@ -555,7 +551,6 @@ document.addEventListener('mouseup', () => {
   isDragging = false;
 });
 
-// Initial notice update
 updateNotice();
 </script>
 <footer>© 2026 GPRZ | v2.1</footer>
