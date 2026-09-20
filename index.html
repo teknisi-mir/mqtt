@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,53 +8,173 @@
 <script src="https://unpkg.com/mqtt@5.10.1/dist/mqtt.min.js"></script>
 <style>
   *{box-sizing:border-box;font-family:Consolas,monospace}
-  body{margin:0;background:#0f1115;color:#e6e6e6;display:flex;flex-direction:column;height:100vh}
-  header{padding:12px 20px;background:#161a22;border-bottom:1px solid #2a2f3a;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-  header h2{margin:0;font-size:18px}
-  input,button{padding:8px 12px;border-radius:6px;border:1px solid #2a2f3a;background:#0f1115;color:#fff}
+  body{margin:0;background:#0f1115;color:#e6e6e6;display:flex;flex-direction:column;height:100vh;overflow:hidden}
+  header{padding:12px 20px;background:#161a22;border-bottom:1px solid #2a2f3a;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  header h2{margin:0;font-size:18px;margin-right:6px}
+  input,button,select,textarea{padding:6px 10px;border-radius:6px;border:1px solid #2a2f3a;background:#0f1115;color:#fff;font-size:13px}
+  input:disabled,textarea:disabled{opacity:.4;cursor:not-allowed}
   button{cursor:pointer;background:#2d6cff;border:none;font-weight:bold}
   button.secondary{background:#2a2f3a}
   button.danger{background:#ff3b3b}
+  button.sm{padding:6px 8px;font-size:11px}
   button:disabled{opacity:.5;cursor:not-allowed}
-  #status{font-size:13px;padding:4px 10px;border-radius:20px;background:#2a2f3a}
+  .radio-group{display:inline-flex;align-items:center;gap:6px;font-size:12px;background:#0f1115;padding:4px 8px;border-radius:6px;border:1px solid #2a2f3a}
+  .radio-group label{cursor:pointer;display:flex;align-items:center;gap:3px}
+  .chk-label{font-size:12px;display:inline-flex;align-items:center;gap:4px;cursor:pointer;user-select:none}
+  #status{font-size:12px;padding:4px 10px;border-radius:20px;background:#2a2f3a;font-weight:bold}
   #status.on{background:#0e3d1f;color:#4ade80}
   #status.off{background:#3d0e0e;color:#ff7a7a}
- .container{display:flex;flex-direction:column;flex:1;overflow:hidden}
+  #status.connecting{background:#3d320e;color:#facc15}
+  .status-wrapper{display:flex;flex-direction:column;gap:2px}
+  #systemLog{font-size:11px;color:#ff7a7a;max-width:300px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .container{display:flex;flex-direction:column;flex:1;overflow:hidden}
   #colTopics{padding:12px 14px;background:#161a22;border-bottom:1px solid #2a2f3a;flex:0 0 auto;max-height:35vh;overflow-y:auto}
   #colTopics h3{margin:0 0 10px 0;font-size:13px;text-transform:uppercase;letter-spacing:1px;color:#9aa4b2}
   #topicList{display:flex;flex-wrap:wrap;gap:8px}
- .topic-item{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;background:#0f1115;border:1px solid #232937;border-radius:20px}
- .topic-item label{font-size:12px;cursor:pointer;white-space:nowrap}
- .topic-item input{width:14px;height:14px}
- .topic-item:hover{border-color:#2d6cff}
- .cnt{font-size:11px;background:#232937;padding:1px 6px;border-radius:10px}
+  .topic-item{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;background:#0f1115;border:1px solid #232937;border-radius:20px}
+  .topic-item label{font-size:12px;cursor:pointer;white-space:nowrap}
+  .topic-item input{width:14px;height:14px}
+  .topic-item:hover{border-color:#2d6cff}
+  .cnt{font-size:11px;background:#232937;padding:1px 6px;border-radius:10px}
   #colMessages{flex:1;display:flex;flex-direction:column;overflow:hidden;padding:12px 14px}
- .controls{display:flex;gap:8px;margin-bottom:10px;align-items:center}
- .controls h3{margin:0;flex:1;font-size:13px;text-transform:uppercase;letter-spacing:1px;color:#9aa4b2}
+  .controls{display:flex;gap:8px;margin-bottom:10px;align-items:center}
+  .controls h3{margin:0;flex:1;font-size:13px;text-transform:uppercase;letter-spacing:1px;color:#9aa4b2}
   #messages{flex:1;overflow-y:auto;font-size:13px;line-height:1.6;background:#0f1115;border:1px solid #1e232e;border-radius:6px;padding:6px}
- .msg{padding:2px 6px;border-bottom:1px solid #161a22;white-space:pre-wrap;word-break:break-all}
- .msg:hover{background:#161a22}
- .hint{font-size:12px;color:#7c8aa0;margin-top:8px}
- footer{ padding:8px 20px; background:#161a22; border-top:1px solid #2a2f3a; font-size:12px; color:#7c8aa0; text-align:center; }
+  .msg{padding:2px 6px;border-bottom:1px solid #161a22;white-space:pre-wrap;word-break:break-all}
+  .msg:hover{background:#161a22}
+  .hint{font-size:12px;color:#7c8aa0;margin-top:8px}
+  footer{ padding:8px 20px; background:#161a22; border-top:1px solid #2a2f3a; font-size:12px; color:#7c8aa0; text-align:center; }
+
+  .fab-publish {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #2d6cff;
+    color: #fff;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: bold;
+    opacity: 0.7;
+    cursor: pointer;
+    z-index: 999;
+    transition: opacity 0.2s, background 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .fab-publish:hover {
+    opacity: 1;
+    background: #1a56e8;
+  }
+
+  .publish-popup {
+    position: fixed;
+    bottom: 60px;
+    right: 20px;
+    width: 320px;
+    background: #161a22;
+    border: 1px solid #2a2f3a;
+    border-radius: 8px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.6);
+    z-index: 1000;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  
+  .popup-header {
+    padding: 10px 14px;
+    background: #232937;
+    cursor: move;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    user-select: none;
+    font-weight: bold;
+    font-size: 13px;
+    color: #fff;
+  }
+  .popup-header .close-btn {
+    background: transparent;
+    border: none;
+    color: #9aa4b2;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+  }
+  .popup-header .close-btn:hover { color: #ff3b3b; }
+  .popup-body {
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .popup-body label {
+    font-size: 11px;
+    color: #9aa4b2;
+    margin-bottom: 2px;
+    display: block;
+  }
+  .popup-body input, .popup-body textarea {
+    width: 100%;
+  }
+  .popup-body textarea {
+    resize: vertical;
+    min-height: 60px;
+  }
+  .pub-log {
+    font-size: 11px;
+    min-height: 15px;
+  }
+  .pub-log.success { color: #4ade80; }
+  .pub-log.error { color: #ff7a7a; }
 </style>
 </head>
 <body>
 <header>
   <h2>DLA Monitor</h2>
-  <input id="brokerIp" placeholder="IP Gateway misal 10.155.xx.xx" style="min-width:220px">
-  <input id="brokerUser" value="dlauser" style="width:100px">
-  <input id="brokerPass" type="password" placeholder="Password" style="width:120px">
+  
+  <div class="radio-group">
+    <label><input type="radio" name="protocol" value="ws" checked> WS</label>
+    <label><input type="radio" name="protocol" value="wss"> WSS</label>
+  </div>
+
+  <input id="brokerIp" placeholder="IP Address" style="width:180px">
+  <input id="brokerPort" value="15675" placeholder="Port" style="width:70px">
+  <input id="brokerPath" value="/ws" placeholder="Path (e.g. /ws or /mqtt)" style="width:70px">
+  <input id="brokerUser" value="dlauser" placeholder="User" style="width:90px">
+  <input id="brokerPass" type="password" placeholder="Password" style="width:100px">
+  
+  <label class="chk-label">
+    <input type="checkbox" id="chkNoAuth"> without auth
+  </label>
+
+  <input id="brokerTopic" value="dla/#" placeholder="Topic" style="width:100px">
+  <button id="btnApplyTopic" class="secondary sm" title="Apply New Topic/Port">Apply</button>
+
   <button id="btnConnect">Connect</button>
   <button id="btnStop" class="secondary" disabled>Disconnect</button>
-  <span id="status" class="off">DISCONNECTED</span>
-  <span style="margin-left:auto;font-size:12px;color:#7c8aa0">user: dlauser | topic: dla/# | ws port: 15675</span>
+  <button id="btnCancel" class="danger sm" style="display:none;">Stop Reconnect</button>
+  
+  <div class="status-wrapper">
+    <span id="status" class="off">DISCONNECTED</span>
+    <span id="systemLog"></span>
+  </div>
+
+  <span id="noticeBox" style="margin-left:auto;font-size:12px;color:#7c8aa0">
+    user: dlauser | topic: dla/# | port: 15675
+  </span>
 </header>
 
 <div class="container">
   <div id="colTopics">
-    <h3>Topics (dla/) - <span id="topicCount">0</span></h3>
+    <h3>Topics (<span id="currentTopicHeader">dla/#</span>) - <span id="topicCount">0</span></h3>
     <div id="topicList"></div>
-    <div class="hint">Topic akan muncul otomatis</div>
+    <div class="hint">Topics will appear automatically</div>
   </div>
 
   <div id="colMessages">
@@ -66,40 +186,117 @@
   </div>
 </div>
 
+<button id="btnFabPublish" class="fab-publish">
+  <span>⚡ Publish</span>
+</button>
+
+<div id="publishPopup" class="publish-popup">
+  <div id="popupHeader" class="popup-header">
+    <span>Publish Message</span>
+    <button id="btnClosePopup" class="close-btn">&times;</button>
+  </div>
+  <div class="popup-body">
+    <div>
+      <label for="pubTopic">Topic</label>
+      <input id="pubTopic" placeholder="e.g. dla/sensor/temp" value="dla/test">
+    </div>
+    <div>
+      <label for="pubPayload">Message Payload</label>
+      <textarea id="pubPayload"></textarea>
+    </div>
+    <div id="pubLog" class="pub-log"></div>
+    <button id="btnPublishExec">Publish</button>
+  </div>
+</div>
+
 <script>
 const brokerIpInput = document.getElementById('brokerIp');
+const brokerPortInput = document.getElementById('brokerPort');
+const brokerUserInput = document.getElementById('brokerUser');
+const brokerPassInput = document.getElementById('brokerPass');
+const brokerTopicInput = document.getElementById('brokerTopic');
+const chkNoAuth = document.getElementById('chkNoAuth');
 const btnConnect = document.getElementById('btnConnect');
 const btnStop = document.getElementById('btnStop');
+const btnCancel = document.getElementById('btnCancel');
+const btnApplyTopic = document.getElementById('btnApplyTopic');
 const btnClear = document.getElementById('btnClear');
 const statusEl = document.getElementById('status');
+const systemLogEl = document.getElementById('systemLog');
+const noticeBoxEl = document.getElementById('noticeBox');
+const currentTopicHeaderEl = document.getElementById('currentTopicHeader');
 const topicListEl = document.getElementById('topicList');
 const messagesEl = document.getElementById('messages');
 const topicCountEl = document.getElementById('topicCount');
 const msgCountEl = document.getElementById('msgCount');
-const brokerPassInput = document.getElementById('brokerPass');
-const lastPass = localStorage.getItem('dla_broker_pass');
-if(lastPass) brokerPassInput.value = lastPass;
-
+const btnFabPublish = document.getElementById('btnFabPublish');
+const publishPopup = document.getElementById('publishPopup');
+const popupHeader = document.getElementById('popupHeader');
+const btnClosePopup = document.getElementById('btnClosePopup');
+const pubTopicInput = document.getElementById('pubTopic');
+const pubPayloadInput = document.getElementById('pubPayload');
+const btnPublishExec = document.getElementById('btnPublishExec');
+const pubLog = document.getElementById('pubLog');
 
 let client = null;
 let discoveredTopics = new Map();
 let msgCounter = 0;
 let isPaused = false;
 
+const lastIp = localStorage.getItem('dla_broker_ip');
+if(lastIp) brokerIpInput.value = lastIp;
+const lastPass = localStorage.getItem('dla_broker_pass');
+if(lastPass) brokerPassInput.value = lastPass;
+const lastUser = localStorage.getItem('dla_broker_user');
+if(lastUser) brokerUserInput.value = lastUser;
+
+chkNoAuth.addEventListener('change', (e) => {
+  const noAuth = e.target.checked;
+  brokerUserInput.disabled = noAuth;
+  brokerPassInput.disabled = noAuth;
+});
+
+function getProtocol(){
+  const radios = document.getElementsByName('protocol');
+  for(let r of radios){
+    if(r.checked) return r.value;
+  }
+  return 'ws';
+}
+
+function updateNotice(){
+  const user = chkNoAuth.checked ? 'anonymous' : (brokerUserInput.value || 'dlauser');
+  const topic = brokerTopicInput.value || 'dla/#';
+  const port = brokerPortInput.value || '15675';
+  noticeBoxEl.textContent = `user: ${user} | topic: ${topic} | port: ${port}`;
+  currentTopicHeaderEl.textContent = topic;
+}
+
 function getBrokerUrl(){
   let raw = brokerIpInput.value.trim();
   if(!raw) return null;
+  const proto = getProtocol();
+  const port = brokerPortInput.value.trim() || '15675';
+  let path = document.getElementById('brokerPath').value.trim() || '/ws';
+  
+  if(!path.startsWith('/')) path = '/' + path;
+
   if(raw.includes('://')) return raw;
-  let ip = raw, port = 15675, path = '/ws';
+  let ip = raw;
   if(raw.includes(':')){
-    const parts = raw.split(':');
-    ip = parts[0];
-    const p = parseInt(parts[1]);
-    if(!isNaN(p)) port = p;
+    ip = raw.split(':')[0];
   }
-  return `ws://${ip}:${port}${path}`;
+  return `${proto}://${ip}:${port}${path}`;
 }
-function setStatus(on, text){ statusEl.textContent = text; statusEl.className = on? 'on' : 'off'; }
+
+function setStatus(state, text){ 
+  statusEl.textContent = text; 
+  statusEl.className = state; 
+}
+
+function logSystemError(errText){
+  systemLogEl.textContent = errText ? `[Log]: ${errText}` : '';
+}
 
 function renderTopics(){
   topicListEl.innerHTML = '';
@@ -117,6 +314,7 @@ function renderTopics(){
   });
   topicCountEl.textContent = discoveredTopics.size;
 }
+
 function addOrUpdateTopic(topic){
   if(!discoveredTopics.has(topic)){
     discoveredTopics.set(topic, {enabled:true, count:0});
@@ -124,65 +322,220 @@ function addOrUpdateTopic(topic){
   discoveredTopics.get(topic).count++;
   renderTopics();
 }
+
 function addMessage(topic, payload){
   if(isPaused) return;
   const t = discoveredTopics.get(topic);
-  if(t &&!t.enabled) return;
+  if(t && !t.enabled) return;
   const now = new Date();
   const timeStr = [
-  String(now.getHours()).padStart(2,'0'),
-  String(now.getMinutes()).padStart(2,'0'),
-  String(now.getSeconds()).padStart(2,'0')
+    String(now.getHours()).padStart(2,'0'),
+    String(now.getMinutes()).padStart(2,'0'),
+    String(now.getSeconds()).padStart(2,'0')
   ].join(':');
 
   const line = `${timeStr} [${topic}] ${payload}`;
 
   const row = document.createElement('div');
   row.className = 'msg';
-  row.textContent = line; // pakai textContent biar aman
+  row.textContent = line;
   messagesEl.prepend(row);
-  msgCounter++; msgCountEl.textContent = msgCounter;
+  msgCounter++; 
+  msgCountEl.textContent = msgCounter;
   if(messagesEl.children.length > 1000) messagesEl.removeChild(messagesEl.lastChild);
 }
 
-btnConnect.addEventListener('click', ()=>{
+function startConnection(){
+  updateNotice();
+  logSystemError('');
   const url = getBrokerUrl();
-  const user = document.getElementById('brokerUser').value || 'dlauser';
-  const pass = brokerPassInput.value.trim();
-  if(!pass){ alert('Isi password'); return; }  
-  localStorage.setItem('dla_broker_pass', pass); 
-  if(!url){ alert('Isi IP Gateway, Contoh: 10.155.170.xxx'); return; }
-  localStorage.setItem('dla_broker_ip', brokerIpInput.value.trim());
-  if(client) { try{client.end(true)}catch(e){} }
-  setStatus(false, 'CONNECTING '+url);
-  btnConnect.disabled = true;
-  const options = { username: user, password: pass, clean: true, connectTimeout: 5000,  reconnectPeriod: 2000, keepalive: 30 };
-  client = mqtt.connect(url, options);
-  client.on('connect', ()=>{ setStatus(true, 'CONNECTED '+url); btnStop.disabled = false; btnConnect.disabled = true; isPaused = false; btnStop.textContent = 'Stop'; client.subscribe('dla/#'); });
-  client.on('reconnect', ()=>{ setStatus(false, 'RECONNECTING...'); });  
-  client.on('message', (topic, message)=>{ const payload = message.toString(); addOrUpdateTopic(topic); addMessage(topic, payload); });
-  client.on('error', (err)=>{ console.log('MQTT Error', err); });
-  client.on('close', ()=>{
-  setStatus(false, 'DISCONNECTED');
-  btnConnect.disabled = false;
-  btnStop.disabled = true;
-});
-});
+  if(!url){ alert('Enter IP Address or Domain Wss'); return; }
 
-btnStop.addEventListener('click', ()=>{
+  localStorage.setItem('dla_broker_ip', brokerIpInput.value.trim());
+  if(!chkNoAuth.checked){
+    localStorage.setItem('dla_broker_user', brokerUserInput.value.trim());
+    localStorage.setItem('dla_broker_pass', brokerPassInput.value.trim());
+  }
+
+  if(client) { 
+    try{ client.end(true); } catch(e){} 
+  }
+
+  setStatus('connecting', 'CONNECTING...');
+  btnConnect.disabled = true;
+  btnCancel.style.display = 'inline-block';
+
+  const options = { 
+    clean: true, 
+    connectTimeout: 5000,  
+    reconnectPeriod: 3000, 
+    keepalive: 30 
+  };
+
+  if(chkNoAuth.checked){
+    options.allow_anonymous = true;
+  } else {
+    options.username = brokerUserInput.value || 'dlauser';
+    options.password = brokerPassInput.value.trim();
+  }
+
+  client = mqtt.connect(url, options);
+
+  client.on('connect', ()=>{ 
+    setStatus('on', 'CONNECTED'); 
+    btnStop.disabled = false; 
+    btnConnect.disabled = true; 
+    btnCancel.style.display = 'none';
+    isPaused = false; 
+    btnStop.textContent = 'Disconnect'; 
+    logSystemError('');
+
+    const subTopic = brokerTopicInput.value.trim() || 'dla/#';
+    client.subscribe(subTopic, (err) => {
+      if(err) logSystemError('Subscribe error: ' + err.message);
+    }); 
+  });
+
+  client.on('reconnect', ()=>{ 
+    setStatus('connecting', 'RECONNECTING...'); 
+    btnCancel.style.display = 'inline-block';
+    logSystemError('Attempting to reconnect...');
+  });  
+
+  client.on('message', (topic, message)=>{ 
+    const payload = message.toString(); 
+    addOrUpdateTopic(topic); 
+    addMessage(topic, payload); 
+  });
+
+  client.on('error', (err)=>{ 
+    console.log('MQTT Error', err); 
+    logSystemError(err.message || 'Failed to connect to broker');
+  });
+
+  client.on('close', ()=>{
+    if(!client || client.reconnecting) return;
+    setStatus('off', 'DISCONNECTED');
+    btnConnect.disabled = false;
+    btnStop.disabled = true;
+    btnCancel.style.display = 'none';
+  });
+}
+
+function stopConnection(){
   if(client){
     try{ client.end(true); }catch(e){}
     client = null;
   }
   isPaused = false;
-  setStatus(false, 'DISCONNECTED');
+  setStatus('off', 'DISCONNECTED');
   btnConnect.disabled = false;
   btnStop.disabled = true;
-  btnStop.textContent = 'Stop';
+  btnCancel.style.display = 'none';
+  logSystemError('Connection stopped');
+}
+
+btnConnect.addEventListener('click', startConnection);
+btnStop.addEventListener('click', stopConnection);
+
+btnCancel.addEventListener('click', ()=>{
+  stopConnection();
+  logSystemError('Reconnection canceled by user');
 });
-btnClear.addEventListener('click', ()=>{ messagesEl.innerHTML = ''; msgCounter = 0; msgCountEl.textContent = '0'; });
-const lastIp = localStorage.getItem('dla_broker_ip'); if(lastIp) brokerIpInput.value = lastIp;
+
+btnApplyTopic.addEventListener('click', ()=>{
+  if(client && client.connected){
+    startConnection();
+  } else {
+    updateNotice();
+  }
+});
+
+btnClear.addEventListener('click', ()=>{ 
+  messagesEl.innerHTML = ''; 
+  msgCounter = 0; 
+  msgCountEl.textContent = '0'; 
+  discoveredTopics.clear();
+  renderTopics();
+});
+
+// Pop-up Toggle
+btnFabPublish.addEventListener('click', () => {
+  publishPopup.style.display = publishPopup.style.display === 'flex' ? 'none' : 'flex';
+  pubLog.textContent = '';
+});
+
+btnClosePopup.addEventListener('click', () => {
+  publishPopup.style.display = 'none';
+});
+
+// Publish Message Execution
+btnPublishExec.addEventListener('click', () => {
+  const topic = pubTopicInput.value.trim();
+  const payload = pubPayloadInput.value;
+
+  if(!client || !client.connected){
+    pubLog.className = 'pub-log error';
+    pubLog.textContent = 'Not connected to MQTT broker!';
+    return;
+  }
+
+  if(!topic){
+    pubLog.className = 'pub-log error';
+    pubLog.textContent = 'Topic is required!';
+    return;
+  }
+
+  client.publish(topic, payload, (err) => {
+    if(err){
+      pubLog.className = 'pub-log error';
+      pubLog.textContent = 'Publish failed: ' + err.message;
+    } else {
+      pubLog.className = 'pub-log success';
+      pubLog.textContent = 'Published successfully!';
+      setTimeout(() => { pubLog.textContent = ''; }, 3000);
+    }
+  });
+});
+
+// Make Popup Draggable
+let isDragging = false;
+let offsetX = 0;
+let offsetY = 0;
+
+popupHeader.addEventListener('mousedown', (e) => {
+  isDragging = true;
+  const rect = publishPopup.getBoundingClientRect();
+  offsetX = e.clientX - rect.left;
+  offsetY = e.clientY - rect.top;
+});
+
+document.addEventListener('mousemove', (e) => {
+  if (!isDragging) return;
+  
+  let left = e.clientX - offsetX;
+  let top = e.clientY - offsetY;
+
+  // Boundary check
+  const maxLeft = window.innerWidth - publishPopup.offsetWidth;
+  const maxTop = window.innerHeight - publishPopup.offsetHeight;
+
+  left = Math.max(0, Math.min(left, maxLeft));
+  top = Math.max(0, Math.min(top, maxTop));
+
+  publishPopup.style.left = `${left}px`;
+  publishPopup.style.top = `${top}px`;
+  publishPopup.style.bottom = 'auto';
+  publishPopup.style.right = 'auto';
+});
+
+document.addEventListener('mouseup', () => {
+  isDragging = false;
+});
+
+// Initial notice update
+updateNotice();
 </script>
-<footer>© 2026 GPRZ | v1.1</footer>
+<footer>© 2026 GPRZ | v2.0</footer>
 </body>
 </html>
