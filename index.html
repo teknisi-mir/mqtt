@@ -13,7 +13,7 @@
 <script src="https://unpkg.com/mqtt@5.10.1/dist/mqtt.min.js"></script>
 <style>
   *{box-sizing:border-box;font-family:Consolas,monospace}
-  body{margin:0;background:#0f1115;color:#e6e6e6;display:flex;flex-direction:column;height:100vh;overflow:hidden}
+  body{margin:0;background:#0f1115;color:#e6e6e6;display:flex;flex-direction:column;height:100vh; height:100dvh;overflow:hidden}
   header{padding:12px 20px;background:#161a22;border-bottom:1px solid #2a2f3a;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
   header h2{margin:0;font-size:18px;margin-right:6px}
   input,button,select,textarea{padding:6px 10px;border-radius:6px;border:1px solid #2a2f3a;background:#0f1115;color:#fff;font-size:13px}
@@ -242,6 +242,7 @@ const pubTopicInput = document.getElementById('pubTopic');
 const pubPayloadInput = document.getElementById('pubPayload');
 const btnPublishExec = document.getElementById('btnPublishExec');
 const pubLog = document.getElementById('pubLog');
+const brokerPathInput = document.getElementById('brokerPath');
 
 let client = null;
 let discoveredTopics = new Map();
@@ -254,6 +255,10 @@ const lastPass = localStorage.getItem('dla_broker_pass');
 if(lastPass) brokerPassInput.value = lastPass;
 const lastUser = localStorage.getItem('dla_broker_user');
 if(lastUser) brokerUserInput.value = lastUser;
+const lastPort = localStorage.getItem('dla_broker_port');
+if(lastPort) brokerPortInput.value = lastPort;
+const lastPath = localStorage.getItem('dla_broker_path');
+if(lastPath) brokerPathInput.value = lastPath;
 
 window.addEventListener('resize', () => {
   if (publishPopup.style.display === 'flex' && publishPopup.style.left) {
@@ -379,6 +384,9 @@ function startConnection(){
   if(!url){ alert('Enter IP Address or Domain Wss'); return; }
 
   localStorage.setItem('dla_broker_ip', brokerIpInput.value.trim());
+  localStorage.setItem('dla_broker_port', brokerPortInput.value.trim()); 
+  localStorage.setItem('dla_broker_path', brokerPathInput.value.trim());
+  
   if(!chkNoAuth.checked){
     localStorage.setItem('dla_broker_user', brokerUserInput.value.trim());
     localStorage.setItem('dla_broker_pass', brokerPassInput.value.trim());
@@ -558,6 +566,6 @@ document.addEventListener('mouseup', () => {
 
 updateNotice();
 </script>
-<footer>© 2026 GPRZ | v2.2</footer>
+<footer>© 2026 GPRZ | v2.3</footer>
 </body>
 </html>
